@@ -2,6 +2,17 @@
 
 All notable changes to MetriyonAPI will be documented here.
 
+## [0.6.4] - 2026-08-19
+
+### Fixed
+
+- Fixed multiline cURL imports using Linux/macOS `\\` line continuations with LF and Windows CRLF line endings.
+- Imported cURL endpoint URLs are now preserved correctly instead of falling back to the request placeholder.
+- Query-string parameters are extracted into the Params editor during cURL import.
+- `Authorization: Bearer` and `Authorization: Basic` headers are converted into the corresponding Auth configuration.
+- Common API-key headers such as `X-API-Key` are imported into API Key authentication.
+- Added support for common cURL forms including `--option=value`, `--json`, `--get`, `--data-urlencode`, `--user-agent`, and `--cookie`.
+
 ## [0.6.3] - 2026-08-19
 
 ### Added
