@@ -479,6 +479,35 @@ func (a *App) RunFlow(input models.FlowRunInput) (models.FlowRunResult, error) {
 			}
 			selected = flowEdgesForHandle(outgoing[node.ID], nodeResult.Outcome)
 
+			// Record the branch that was not selected. Besides making the execution
+			// result explicit, the frontend uses this to render the unused IF path
+			// as skipped instead of making it look like it was never evaluated.
+			for _, edge := range outgoing[node.ID] {
+				handle := strings.ToLower(strings.TrimSpace(edge.SourceHandle))
+				if handle != "true" && handle != "false" {
+					continue
+				}
+				if handle == nodeResult.Outcome {
+					continue
+				}
+				skippedNode, exists := nodes[edge.TargetID]
+				if !exists {
+					continue
+				}
+				appendResult(models.FlowNodeResult{
+					NodeID:    skippedNode.ID,
+					Type:      normalizedFlowNodeType(skippedNode),
+					RequestID: skippedNode.RequestID,
+					Name:      skippedNode.Name,
+					StartedAt: time.Now().UTC(),
+					Extracted: map[string]string{},
+					Outcome:   "skipped",
+					Skipped:   true,
+					Iteration: iteration,
+				})
+				emitNode(skippedNode.ID, "skipped", iteration)
+			}
+
 		case "filter":
 			passed, conditionErr := evaluateFlowConditions(node, response, snapshotValues())
 			if conditionErr != nil {
