@@ -33,7 +33,7 @@ Maintainer-specific Windows helper scripts and local signing configuration are i
 
 Metriyon API is a local-first desktop client for building, sending, automating, and inspecting REST and SOAP requests. It uses a Go transport engine, a Wails desktop shell, a lightweight TypeScript interface, Tailwind CSS, and SQLite persistence. No account or external application server is required.
 
-Current version: **0.6.2**
+Current version: **0.6.3**
 
 ## Features in this delivery
 
@@ -162,7 +162,7 @@ Coverage focuses on variable precedence, REST/SOAP request construction, authent
 
 ```powershell
 wails build -platform windows/amd64 -clean `
-  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+  -ldflags "-X forge-api-client/version.Version=0.6.3 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
 ```
 
 Output: `build/bin/MetriyonAPI.exe`.
@@ -173,7 +173,7 @@ Build on a Linux host with the Wails WebKit dependencies installed:
 
 ```bash
 wails build -platform linux/amd64 -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.3 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 ### macOS
@@ -182,7 +182,7 @@ Build on macOS:
 
 ```bash
 wails build -platform darwin/universal -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.3 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Wails platform builds should be performed on the target operating system for the most reliable native packaging.
@@ -193,6 +193,13 @@ Wails platform builds should be performed on the target operating system for the
 Visual flows support Request, If, Filter, Extract Data, Loop Over Items, Wait, Switch and Parallel nodes. Loop has `loop` and `done` outputs and a fixed execution counter; nodes connected to the loop branch can return to the Loop input. Wait accepts milliseconds, seconds or minutes. Switch supports numbered outputs selected by routing rules or by a numeric expression. Parallel starts all configured numbered branches concurrently.
 
 While a flow is running, Wails progress events update the canvas in real time: the currently executing node and edge are highlighted, completed paths stay green, and inactive paths remain unchanged.
+
+
+## Update notifications
+
+MetriyonAPI checks the official GitHub Releases feed at most once every 24 hours. When a newer public release is available, the desktop app displays **“Há uma nova versão disponível!”** with the installed and latest versions, release notes, and a button that opens the official GitHub Release for download.
+
+The application never replaces its own executable silently. Users can also run a manual check from **Settings → About → Check for updates**. Automatic checks only contact the public GitHub Releases API and do not transmit saved requests, environments, secrets, or workspace data.
 
 ## SQLite and persistence
 

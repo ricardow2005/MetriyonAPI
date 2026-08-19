@@ -21,3 +21,7 @@ Include, when possible:
 ## Secrets
 
 Never commit passwords, API tokens, OAuth client secrets, private keys, PFX/P12 files or signing credentials. The repository `.gitignore` excludes common local signing files, but contributors remain responsible for reviewing commits before pushing.
+
+## Software updates
+
+Update discovery is restricted to the official public GitHub Releases feed for `ricardow2005/MetriyonAPI`. The in-app download action only opens URLs under the canonical GitHub Releases path. MetriyonAPI does not silently replace its executable; users remain in control of downloading and installing a new release.

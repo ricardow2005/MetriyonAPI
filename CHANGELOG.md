@@ -2,6 +2,20 @@
 
 All notable changes to MetriyonAPI will be documented here.
 
+## [0.6.3] - 2026-08-19
+
+### Added
+
+- Automatic daily update check against the official MetriyonAPI GitHub Releases feed.
+- New-version dialog showing installed/latest versions, release notes, and an official GitHub download action.
+- Manual **Check for updates** action in Settings → About.
+- Persistent 24-hour update-check throttle to avoid unnecessary GitHub API calls.
+
+### Security
+
+- Update downloads are opened only from the canonical `ricardow2005/MetriyonAPI` GitHub Releases URL.
+- Update checks do not transmit saved API requests, credentials, environments, or workspace data.
+
 ## [0.6.2] - 2026-08-19
 
 ### Added

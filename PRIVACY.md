@@ -27,3 +27,9 @@ When a user configures MetriyonAPI to communicate with a third-party API or iden
 Project: https://www.organizza.com.br/produtos/metriyonapi
 
 OrganizzaTech: https://www.organizza.com.br
+
+## Update checks
+
+MetriyonAPI can contact the public GitHub Releases API for `ricardow2005/MetriyonAPI` to determine whether a newer official version is available. Automatic checks are limited to at most once every 24 hours. The request contains standard HTTP metadata and the running MetriyonAPI version in the User-Agent; it does not include saved API requests, request/response bodies, credentials, environment variables, workspace contents, or local database data.
+
+When an update is available, MetriyonAPI asks the user before opening the official GitHub Release page. The application does not silently download, replace, or execute updates.
