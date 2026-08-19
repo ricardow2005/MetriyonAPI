@@ -28,12 +28,13 @@ import (
 )
 
 type App struct {
-	ctx       context.Context
-	store     *storage.Store
-	engine    *httpclient.Engine
-	protector *security.Protector
-	loadMu    sync.Mutex
-	loadStops map[string]context.CancelFunc
+	ctx           context.Context
+	eventsEnabled bool
+	store         *storage.Store
+	engine        *httpclient.Engine
+	protector     *security.Protector
+	loadMu        sync.Mutex
+	loadStops     map[string]context.CancelFunc
 }
 
 func New(store *storage.Store, protector *security.Protector) *App {
@@ -41,6 +42,7 @@ func New(store *storage.Store, protector *security.Protector) *App {
 }
 func (a *App) Startup(ctx context.Context) {
 	a.ctx = ctx
+	a.eventsEnabled = true
 	if state, err := a.store.LoadState(); err == nil {
 		if state.Settings.WindowWidth >= 960 && state.Settings.WindowHeight >= 640 {
 			wruntime.WindowSetSize(ctx, state.Settings.WindowWidth, state.Settings.WindowHeight)
@@ -320,14 +322,14 @@ func (a *App) RunFlow(input models.FlowRunInput) (models.FlowRunResult, error) {
 	}
 
 	emitNode := func(nodeID, status string, iteration int) {
-		if a.ctx != nil {
+		if a.eventsEnabled && a.ctx != nil {
 			wruntime.EventsEmit(a.ctx, "flow:progress", map[string]any{
 				"flowId": input.Flow.ID, "nodeId": nodeID, "status": status, "iteration": iteration,
 			})
 		}
 	}
 	emitEdge := func(edgeID, status string, iteration int) {
-		if a.ctx != nil {
+		if a.eventsEnabled && a.ctx != nil {
 			wruntime.EventsEmit(a.ctx, "flow:progress", map[string]any{
 				"flowId": input.Flow.ID, "edgeId": edgeID, "status": status, "iteration": iteration,
 			})
@@ -616,7 +618,7 @@ func (a *App) RunFlow(input models.FlowRunInput) (models.FlowRunResult, error) {
 	result.Successful = !isFailed()
 	result.DurationMs = time.Since(started).Milliseconds()
 	result.Variables = snapshotValues()
-	if a.ctx != nil {
+	if a.eventsEnabled && a.ctx != nil {
 		wruntime.EventsEmit(a.ctx, "flow:progress", map[string]any{"flowId": input.Flow.ID, "status": "finished", "successful": result.Successful})
 	}
 	_ = failureText
