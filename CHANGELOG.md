@@ -13,6 +13,8 @@ All notable changes to MetriyonAPI will be documented here.
 
 ### Changed
 
+- Updated public Code signing policy and SignPath Foundation application documentation for the OSS signing process.
+- Corrected stale README license/version/signing instructions.
 - Local Authenticode signing is optional for developer builds while the public open-source signing pipeline is being established.
 
 ## [0.6.0] - 2026-08-19

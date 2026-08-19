@@ -33,7 +33,7 @@ Maintainer-specific Windows helper scripts and local signing configuration are i
 
 Metriyon API is a local-first desktop client for building, sending, automating, and inspecting REST and SOAP requests. It uses a Go transport engine, a Wails desktop shell, a lightweight TypeScript interface, Tailwind CSS, and SQLite persistence. No account or external application server is required.
 
-Current version: **0.6.1**
+Current version: **0.6.2**
 
 ## Features in this delivery
 
@@ -162,7 +162,7 @@ Coverage focuses on variable precedence, REST/SOAP request construction, authent
 
 ```powershell
 wails build -platform windows/amd64 -clean `
-  -ldflags "-X forge-api-client/version.Version=0.6.1 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
 ```
 
 Output: `build/bin/MetriyonAPI.exe`.
@@ -173,7 +173,7 @@ Build on a Linux host with the Wails WebKit dependencies installed:
 
 ```bash
 wails build -platform linux/amd64 -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.1 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 ### macOS
@@ -182,7 +182,7 @@ Build on macOS:
 
 ```bash
 wails build -platform darwin/universal -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.1 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.2 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Wails platform builds should be performed on the target operating system for the most reliable native packaging.
@@ -239,57 +239,28 @@ The local master key is not a substitute for a locked operating-system account. 
 
 ## License
 
-No license has been selected yet.
-
+MetriyonAPI is licensed under the [MIT License](LICENSE).
 
 ## Windows publisher metadata and code signing
 
-Version **0.6.1** adds Windows executable metadata and optional Authenticode signing support for distribution builds.
+Windows builds embed the following product metadata:
 
-Executable metadata:
-
-- Company / publisher identity: `OrganizzaTech`
+- Company: `OrganizzaTech`
 - Product: `MetriyonAPI`
 - Product page: `https://www.organizza.com.br/produtos/metriyonapi`
 - Main website: `https://www.organizza.com.br`
 
-The metadata is embedded by Wails from `wails.json`. This makes the product/company/version information visible in Windows file properties, but **does not by itself create a trusted digital signature**. To replace `Publisher: Unknown`, the final executable must be signed with a valid Code Signing certificate whose subject identifies OrganizzaTech.
+These metadata fields identify the product but do not establish Authenticode trust by themselves. Official Windows releases are intended to use the SignPath Foundation open-source code-signing program after project approval. Until that integration is active, downloadable binaries are explicitly identified as **unsigned**.
 
-### Signing with wails build -platform windows/amd64
+## Code signing policy
 
-Local signing scripts, certificate files, and maintainer-specific Windows helpers are intentionally excluded from Git. Official release signing is performed by the release pipeline.
+**Free code signing provided by SignPath.io, certificate by SignPath Foundation.**
 
-PFX/P12 example:
+- **Committers and reviewers:** Ricardo Alberto Walter (`@ricardow2005`)
+- **Approvers:** Ricardo Alberto Walter (`@ricardow2005`)
+- **Privacy policy:** [PRIVACY.md](PRIVACY.md)
+- **Full code signing policy:** [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md)
 
-```bat
-set "METRIYON_SIGN_PFX=C:\Certificates\organizzatech-code-signing.pfx"
-set "METRIYON_SIGN_PASSWORD=change-me"
-set "METRIYON_TIMESTAMP_URL=https://your-ca-timestamp-server"
-```
+MetriyonAPI does not transfer information to other networked systems unless the destination or operation is specifically requested or configured by the user. Requests executed by the application are sent only to endpoints selected by the user.
 
-Certificate Store / HSM example:
-
-```bat
-set "METRIYON_SIGN_THUMBPRINT=YOUR_CERTIFICATE_SHA1_THUMBPRINT"
-set "METRIYON_TIMESTAMP_URL=https://your-ca-timestamp-server"
-```
-
-When signing is configured, the build script:
-
-1. Builds `MetriyonAPI.exe`.
-2. Finds Microsoft `signtool.exe`.
-3. Signs the executable with SHA-256.
-4. Adds an RFC3161 timestamp when a timestamp URL is configured.
-5. Verifies the Authenticode signature.
-6. Displays the certificate subject and warns if it does not contain `OrganizzaTech`.
-
-Never commit a private `.pfx`/`.p12` file or its password to the repository.
-
-
-## Assinatura digital obrigatória no Windows
-
-Os artefatos oficiais de release devem ser gerados pelo workflow de release do GitHub e, quando habilitado, assinados pelo provedor de assinatura open source.
-
-Configuracoes e utilitarios locais de assinatura nao fazem parte do repositorio publico.
-
-Os metadados do produto (OrganizzaTech e URLs do site/produto) não criam confiança criptográfica. Para que outros computadores reconheçam o publisher, é necessário um certificado Code Signing válido cuja chave privada esteja disponível no computador de build ou em HSM/cloud signing.
+Official signed binaries will only be submitted from automated builds of tagged commits in this canonical repository. Every official signing request remains subject to maintainer approval.
