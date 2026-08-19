@@ -45,7 +45,7 @@ jobs:
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
 
-      - name: Build Windows AMD64
+      - name: Build and package Windows AMD64
         shell: pwsh
         run: |
           $commit = "${{ github.sha }}".Substring(0, 7)
@@ -54,9 +54,27 @@ jobs:
           $version = $versionLine.Matches[0].Groups[1].Value
           wails build -platform windows/amd64 -clean -ldflags "-X forge-api-client/version.Version=$version -X forge-api-client/version.Commit=$commit -X forge-api-client/version.BuildDate=$date"
 
-      - name: Upload unsigned CI artifact
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $exeName = "MetriyonAPI-$version-windows-amd64-unsigned.exe"
+          $zipName = "MetriyonAPI-$version-windows-amd64-unsigned.zip"
+
+          Copy-Item build/bin/MetriyonAPI.exe "dist/$exeName"
+          Copy-Item LICENSE dist/LICENSE.txt
+          Copy-Item README.md dist/README.md
+
+          Compress-Archive `
+            -Path "dist/$exeName", dist/LICENSE.txt, dist/README.md `
+            -DestinationPath "dist/$zipName"
+
+          (Get-FileHash "dist/$exeName" -Algorithm SHA256).Hash.ToLower() + "  $exeName" | Out-File -Encoding ascii "dist/SHA256SUMS.txt"
+          (Get-FileHash "dist/$zipName" -Algorithm SHA256).Hash.ToLower() + "  $zipName" | Add-Content -Encoding ascii "dist/SHA256SUMS.txt"
+
+      - name: Upload unsigned CI package
         uses: actions/upload-artifact@v4
         with:
           name: MetriyonAPI-windows-amd64-unsigned
-          path: build/bin/MetriyonAPI.exe
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/SHA256SUMS.txt
           if-no-files-found: error
