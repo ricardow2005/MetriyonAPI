@@ -35,6 +35,3 @@ Thumbs.db
 # Go test/build leftovers
 *.test
 coverage.out
-
-# Wails build output
-build/bin/
