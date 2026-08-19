@@ -17,6 +17,8 @@ import (
 	"forge-api-client/internal/variables"
 )
 
+func definitionVersionFallback() string { return "0.6.7" }
+
 func BuildRequest(ctx context.Context, definition models.RequestDefinition, values map[string]string) (*http.Request, error) {
 	resolvedURL, err := variables.ResolveStrict(definition.URL, values)
 	if err != nil {
@@ -71,6 +73,16 @@ func BuildRequest(ctx context.Context, definition models.RequestDefinition, valu
 	}
 	if strings.EqualFold(definition.Protocol, "SOAP") {
 		applySOAPHeaders(request, definition)
+		// A number of legacy SOAP/IIS endpoints close persistent Go HTTP connections.
+		// Use a conservative HTTP/1.1 request profile for SOAP interoperability.
+		request.Close = true
+		request.Header.Set("Connection", "close")
+		if request.Header.Get("User-Agent") == "" {
+			request.Header.Set("User-Agent", "MetriyonAPI/"+definitionVersionFallback())
+		}
+		if request.Header.Get("Accept") == "" {
+			request.Header.Set("Accept", "text/xml, application/soap+xml, */*")
+		}
 	}
 	if err := applyAuth(request, definition.Auth, values); err != nil {
 		return nil, err

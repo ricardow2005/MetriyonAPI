@@ -44,10 +44,12 @@ func (e *Engine) Execute(ctx context.Context, executionID string, request *http.
 	trace := newTrace()
 	request = request.WithContext(httptrace.WithClientTrace(ctx, trace.clientTrace()))
 	redirects := []models.Redirect{}
+	isSOAP := strings.EqualFold(options.Protocol, "SOAP")
 	transport := &http.Transport{
 		Proxy:                 http.ProxyFromEnvironment,
 		DialContext:           (&net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
-		ForceAttemptHTTP2:     true,
+		ForceAttemptHTTP2:     !isSOAP,
+		DisableKeepAlives:     isSOAP,
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !options.VerifySSL}, // #nosec G402 -- explicit user setting
 		TLSHandshakeTimeout:   15 * time.Second,
 		ResponseHeaderTimeout: time.Duration(max(options.TimeoutSeconds, 1)) * time.Second,

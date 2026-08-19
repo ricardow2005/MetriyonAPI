@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.7] - 2026-08-19
+
+- Corrigido envio de requisições SOAP para serviços HTTP/IIS legados que encerram conexões persistentes.
+- Requisições SOAP agora desabilitam keep-alive e HTTP/2, enviam `Connection: close` e usam headers de compatibilidade quando não configurados pelo usuário.
+- Mantida a configuração explícita do usuário para headers SOAP, autenticação, SSL e redirects.
+
+
 All notable changes to MetriyonAPI will be documented here.
 
 ## [0.6.6] - 2026-08-19
