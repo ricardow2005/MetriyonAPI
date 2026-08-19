@@ -1,0 +1,71 @@
+name: Draft Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  windows-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Test
+        run: go test ./...
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
+
+      - name: Build tagged Windows binary
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          $commit = "${{ github.sha }}".Substring(0, 7)
+          $date = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+          wails build -platform windows/amd64 -clean -ldflags "-X forge-api-client/version.Version=$version -X forge-api-client/version.Commit=$commit -X forge-api-client/version.BuildDate=$date"
+
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item build/bin/MetriyonAPI.exe "dist/MetriyonAPI-$version-windows-amd64-unsigned.exe"
+          Copy-Item LICENSE dist/LICENSE.txt
+          Copy-Item README.md dist/README.md
+          Compress-Archive -Path "dist/MetriyonAPI-$version-windows-amd64-unsigned.exe", dist/LICENSE.txt, dist/README.md -DestinationPath "dist/MetriyonAPI-$version-windows-amd64-unsigned.zip"
+          (Get-FileHash "dist/MetriyonAPI-$version-windows-amd64-unsigned.exe" -Algorithm SHA256).Hash.ToLower() + "  MetriyonAPI-$version-windows-amd64-unsigned.exe" | Out-File -Encoding ascii "dist/SHA256SUMS.txt"
+          (Get-FileHash "dist/MetriyonAPI-$version-windows-amd64-unsigned.zip" -Algorithm SHA256).Hash.ToLower() + "  MetriyonAPI-$version-windows-amd64-unsigned.zip" | Add-Content -Encoding ascii "dist/SHA256SUMS.txt"
+
+      - name: Create draft GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" `
+            --draft `
+            --verify-tag `
+            --generate-notes `
+            --title "MetriyonAPI ${{ github.ref_name }}" `
+            dist/*
