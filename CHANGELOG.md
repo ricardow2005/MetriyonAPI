@@ -2,6 +2,13 @@
 
 All notable changes to MetriyonAPI will be documented here.
 
+## [0.6.6] - 2026-08-19
+
+- Corrigida a importação de WSDL por URL em serviços SOAP/IIS legados que encerram conexões HTTP de clientes genéricos.
+- A leitura de WSDL remoto agora usa cabeçalhos compatíveis com navegador, desabilita keep-alive e força conexão curta para aumentar compatibilidade.
+- Adicionado fallback HTTP/1.0 para endpoints HTTP antigos quando a tentativa HTTP padrão é encerrada pelo servidor remoto.
+- Adicionada validação de URL, limite explícito de 8 MB e teste automatizado de importação WSDL por URL.
+
 ## [0.6.4] - 2026-08-19
 
 ### Fixed

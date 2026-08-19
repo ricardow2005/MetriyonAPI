@@ -33,7 +33,7 @@ Maintainer-specific Windows helper scripts and local signing configuration are i
 
 Metriyon API is a local-first desktop client for building, sending, automating, and inspecting REST and SOAP requests. It uses a Go transport engine, a Wails desktop shell, a lightweight TypeScript interface, Tailwind CSS, and SQLite persistence. No account or external application server is required.
 
-Current version: **0.6.4**
+Current version: **0.6.6**
 
 ## Features in this delivery
 
@@ -162,7 +162,7 @@ Coverage focuses on variable precedence, REST/SOAP request construction, authent
 
 ```powershell
 wails build -platform windows/amd64 -clean `
-  -ldflags "-X forge-api-client/version.Version=0.6.4 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+  -ldflags "-X forge-api-client/version.Version=0.6.6 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
 ```
 
 Output: `build/bin/MetriyonAPI.exe`.
@@ -173,7 +173,7 @@ Build on a Linux host with the Wails WebKit dependencies installed:
 
 ```bash
 wails build -platform linux/amd64 -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.4 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.6 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 ### macOS
@@ -182,7 +182,7 @@ Build on macOS:
 
 ```bash
 wails build -platform darwin/universal -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.4 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.6 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Wails platform builds should be performed on the target operating system for the most reliable native packaging.

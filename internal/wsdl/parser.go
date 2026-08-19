@@ -1,16 +1,21 @@
 package wsdl
 
 import (
+	"bufio"
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"forge-api-client/internal/models"
 )
+
+const maxWSDLSize = 8 * 1024 * 1024
 
 type document struct {
 	Name            string    `xml:"name,attr"`
@@ -47,16 +52,7 @@ func Import(source string, fromURL bool) (models.WSDLImportResult, error) {
 	var body []byte
 	var err error
 	if fromURL {
-		client := http.Client{Timeout: 20 * time.Second}
-		resp, e := client.Get(source)
-		if e != nil {
-			return models.WSDLImportResult{}, fmt.Errorf("baixar WSDL: %w", e)
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			return models.WSDLImportResult{}, fmt.Errorf("baixar WSDL: HTTP %s", resp.Status)
-		}
-		body, err = io.ReadAll(io.LimitReader(resp.Body, 8*1024*1024))
+		body, err = downloadWSDL(source)
 	} else {
 		body, err = os.ReadFile(source)
 	}
@@ -65,6 +61,107 @@ func Import(source string, fromURL bool) (models.WSDLImportResult, error) {
 	}
 	return Parse(body)
 }
+
+func downloadWSDL(source string) ([]byte, error) {
+	parsed, err := url.Parse(strings.TrimSpace(source))
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return nil, fmt.Errorf("URL WSDL inválida: %s", source)
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return nil, fmt.Errorf("protocolo WSDL não suportado: %s", parsed.Scheme)
+	}
+
+	transport := &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           (&net.Dialer{Timeout: 10 * time.Second, KeepAlive: 0}).DialContext,
+		DisableKeepAlives:     true,
+		ForceAttemptHTTP2:     false,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 15 * time.Second,
+	}
+	client := &http.Client{Timeout: 25 * time.Second, Transport: transport}
+
+	req, err := http.NewRequest(http.MethodGet, parsed.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("criar requisição WSDL: %w", err)
+	}
+	// Alguns serviços SOAP/IIS legados encerram conexões de clientes HTTP genéricos.
+	// Esses cabeçalhos também tornam a requisição equivalente ao acesso manual pelo navegador.
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 MetriyonAPI/WSDL")
+	req.Header.Set("Accept", "application/wsdl+xml, application/xml, text/xml, */*")
+	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("Connection", "close")
+	req.Close = true
+
+	resp, requestErr := client.Do(req)
+	if requestErr == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return nil, fmt.Errorf("baixar WSDL: HTTP %s", resp.Status)
+		}
+		return readLimitedWSDL(resp.Body)
+	}
+
+	// Fallback para endpoints HTTP muito antigos que encerram HTTP/1.1 antes de responder.
+	// O navegador costuma conseguir abrir esses WSDLs, enquanto o net/http pode receber
+	// "connection was forcibly closed by the remote host".
+	if parsed.Scheme == "http" {
+		if body, fallbackErr := downloadWSDLHTTP10(parsed); fallbackErr == nil {
+			return body, nil
+		}
+	}
+	return nil, fmt.Errorf("baixar WSDL: %w", requestErr)
+}
+
+func downloadWSDLHTTP10(parsed *url.URL) ([]byte, error) {
+	host := parsed.Host
+	if !strings.Contains(host, ":") {
+		host += ":80"
+	}
+	conn, err := net.DialTimeout("tcp", host, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+	_ = conn.SetDeadline(time.Now().Add(20 * time.Second))
+
+	path := parsed.RequestURI()
+	if path == "" {
+		path = "/"
+	}
+	hostHeader := parsed.Hostname()
+	request := fmt.Sprintf(
+		"GET %s HTTP/1.0\r\nHost: %s\r\nUser-Agent: Mozilla/5.0 MetriyonAPI/WSDL\r\nAccept: application/wsdl+xml, application/xml, text/xml, */*\r\nConnection: close\r\n\r\n",
+		path,
+		hostHeader,
+	)
+	if _, err := io.WriteString(conn, request); err != nil {
+		return nil, err
+	}
+
+	resp, err := http.ReadResponse(bufio.NewReader(conn), &http.Request{Method: http.MethodGet})
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("HTTP %s", resp.Status)
+	}
+	return readLimitedWSDL(resp.Body)
+}
+
+func readLimitedWSDL(reader io.Reader) ([]byte, error) {
+	limited := io.LimitReader(reader, maxWSDLSize+1)
+	body, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, err
+	}
+	if len(body) > maxWSDLSize {
+		return nil, fmt.Errorf("WSDL excede o limite de %d MB", maxWSDLSize/(1024*1024))
+	}
+	return body, nil
+}
+
 func Parse(body []byte) (models.WSDLImportResult, error) {
 	var doc document
 	if err := xml.Unmarshal(body, &doc); err != nil {
