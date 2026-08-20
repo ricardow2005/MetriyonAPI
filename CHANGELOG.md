@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.8] - 2026-08-19
+
+- Added collection export/import with a portable Metriyon collection JSON package including collection variables, folders and requests.
+- Added collection Properties/Variables editor available from the collection context menu.
+- Collection variables can be referenced as `{{variableName}}` in URLs, query params, headers, authentication fields and request bodies.
+- Added collection-variable IntelliSense when typing `{{` in supported request fields.
+- Added collection search and sorting controls in the sidebar.
+- Added Import collection to Quick Actions and to the collection context menu.
+
 ## [0.6.7] - 2026-08-19
 
 - Corrigido envio de requisições SOAP para serviços HTTP/IIS legados que encerram conexões persistentes.

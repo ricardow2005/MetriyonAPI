@@ -358,6 +358,21 @@ type AppState struct {
 	GoVersion    string              `json:"goVersion"`
 }
 
+type CollectionPackage struct {
+	Format     string              `json:"format"`
+	Version    int                 `json:"version"`
+	ExportedAt time.Time           `json:"exportedAt"`
+	Collection Collection          `json:"collection"`
+	Folders    []Folder            `json:"folders"`
+	Requests   []RequestDefinition `json:"requests"`
+}
+
+type CollectionImportResult struct {
+	Collection Collection          `json:"collection"`
+	Folders    []Folder            `json:"folders"`
+	Requests   []RequestDefinition `json:"requests"`
+}
+
 type WSDLImportInput struct {
 	WorkspaceID string `json:"workspaceId"`
 	Source      string `json:"source"`

@@ -14,6 +14,10 @@ export function CancelRequest(arg1) {
   return window['go']['app']['App']['CancelRequest'](arg1);
 }
 
+export function CheckForUpdates(arg1) {
+  return window['go']['app']['App']['CheckForUpdates'](arg1);
+}
+
 export function ClearHistory(arg1) {
   return window['go']['app']['App']['ClearHistory'](arg1);
 }
@@ -34,12 +38,20 @@ export function ExecuteRequest(arg1) {
   return window['go']['app']['App']['ExecuteRequest'](arg1);
 }
 
+export function ExportCollection(arg1) {
+  return window['go']['app']['App']['ExportCollection'](arg1);
+}
+
 export function ExportCurl(arg1) {
   return window['go']['app']['App']['ExportCurl'](arg1);
 }
 
 export function GetOAuthToken(arg1) {
   return window['go']['app']['App']['GetOAuthToken'](arg1);
+}
+
+export function ImportCollection(arg1) {
+  return window['go']['app']['App']['ImportCollection'](arg1);
 }
 
 export function ImportCurl(arg1, arg2) {
@@ -56,6 +68,10 @@ export function MoveFolder(arg1) {
 
 export function NewRequest(arg1, arg2) {
   return window['go']['app']['App']['NewRequest'](arg1, arg2);
+}
+
+export function OpenExternalURL(arg1) {
+  return window['go']['app']['App']['OpenExternalURL'](arg1);
 }
 
 export function PickFile(arg1) {

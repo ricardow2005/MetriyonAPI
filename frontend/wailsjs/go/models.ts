@@ -1,3 +1,56 @@
+export namespace app {
+	
+	export class UpdateInfo {
+	    checked: boolean;
+	    currentVersion: string;
+	    latestVersion: string;
+	    updateAvailable: boolean;
+	    releaseName: string;
+	    releaseUrl: string;
+	    notes: string;
+	    // Go type: time
+	    publishedAt: any;
+	    // Go type: time
+	    checkedAt: any;
+	
+	    static createFrom(source: any = {}) {
+	        return new UpdateInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.checked = source["checked"];
+	        this.currentVersion = source["currentVersion"];
+	        this.latestVersion = source["latestVersion"];
+	        this.updateAvailable = source["updateAvailable"];
+	        this.releaseName = source["releaseName"];
+	        this.releaseUrl = source["releaseUrl"];
+	        this.notes = source["notes"];
+	        this.publishedAt = this.convertValues(source["publishedAt"], null);
+	        this.checkedAt = this.convertValues(source["checkedAt"], null);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace models {
 	
 	export class Settings {
@@ -58,6 +111,24 @@ export namespace models {
 	        this.sourceHandle = source["sourceHandle"];
 	    }
 	}
+	export class FlowSwitchRule {
+	    left: string;
+	    operator: string;
+	    right: string;
+	    outputName?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new FlowSwitchRule(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.left = source["left"];
+	        this.operator = source["operator"];
+	        this.right = source["right"];
+	        this.outputName = source["outputName"];
+	    }
+	}
 	export class FlowCondition {
 	    left: string;
 	    operator: string;
@@ -86,21 +157,6 @@ export namespace models {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.path = source["path"];
 	        this.variable = source["variable"];
-	    }
-	}
-	export class FlowSwitchRule {
-	    left: string;
-	    operator: string;
-	    right: string;
-	    outputName?: string;
-
-	    static createFrom(source: any = {}) { return new FlowSwitchRule(source); }
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.left = source["left"];
-	        this.operator = source["operator"];
-	        this.right = source["right"];
-	        this.outputName = source["outputName"];
 	    }
 	}
 	export class FlowNode {
@@ -855,6 +911,40 @@ export namespace models {
 	}
 	
 	
+	export class CollectionImportResult {
+	    collection: Collection;
+	    folders: Folder[];
+	    requests: RequestDefinition[];
+	
+	    static createFrom(source: any = {}) {
+	        return new CollectionImportResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.collection = this.convertValues(source["collection"], Collection);
+	        this.folders = this.convertValues(source["folders"], Folder);
+	        this.requests = this.convertValues(source["requests"], RequestDefinition);
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
 	
 	
 	export class ExecuteRequestInput {
@@ -895,6 +985,7 @@ export namespace models {
 		    return a;
 		}
 	}
+	
 	
 	
 	
@@ -1030,6 +1121,7 @@ export namespace models {
 		    return a;
 		}
 	}
+	
 	
 	
 	

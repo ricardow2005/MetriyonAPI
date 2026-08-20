@@ -17,7 +17,7 @@ import (
 	"forge-api-client/internal/variables"
 )
 
-func definitionVersionFallback() string { return "0.6.7" }
+func definitionVersionFallback() string { return "0.6.8" }
 
 func BuildRequest(ctx context.Context, definition models.RequestDefinition, values map[string]string) (*http.Request, error) {
 	resolvedURL, err := variables.ResolveStrict(definition.URL, values)

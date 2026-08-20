@@ -33,7 +33,7 @@ Maintainer-specific Windows helper scripts and local signing configuration are i
 
 Metriyon API is a local-first desktop client for building, sending, automating, and inspecting REST and SOAP requests. It uses a Go transport engine, a Wails desktop shell, a lightweight TypeScript interface, Tailwind CSS, and SQLite persistence. No account or external application server is required.
 
-Current version: **0.6.7**
+Current version: **0.6.8**
 
 ## Features in this delivery
 
@@ -44,7 +44,8 @@ Current version: **0.6.7**
 - No Auth, Basic Auth, Bearer Token, API Key, and OAuth 2.0. OAuth token acquisition supports Client Credentials, Password, and Refresh Token grants, with client credentials in the request body or Basic Auth header.
 - Automatic OAuth 2.0 acquisition and renewal before regular requests, Flows, and Load Tests. Missing tokens and tokens within 30 seconds of expiration are refreshed automatically; the manual token button remains available.
 - Persisted request duplication with an independent UUID and a complete copy of request data.
-- Sidebar collection management with contextual create/rename/delete actions and drag-and-drop request moves between folders.
+- Sidebar collection management with contextual create/rename/delete actions, collection search/sort controls, portable collection import/export, and drag-and-drop request moves between folders.
+- Collection Properties provide reusable variables for every request in the collection. Type `{{` in URL, parameters, headers, authentication fields or request bodies to get collection-variable suggestions and insert `{{variableName}}`.
 - Persisted collection/folder collapse state, whole-folder moves between collections, and a concurrent Load Test workspace with latency percentiles, throughput, per-call records, cancellation, and SQLite run history.
 - Response copying: formatted JSON/XML from Pretty view or the exact payload from Raw view.
 - Collapsible response tray and Load Test chart mode with selectable historical baseline, overlaid per-call latency, and regression/improvement deltas for average, P95, P99, and throughput.
@@ -162,7 +163,7 @@ Coverage focuses on variable precedence, REST/SOAP request construction, authent
 
 ```powershell
 wails build -platform windows/amd64 -clean `
-  -ldflags "-X forge-api-client/version.Version=0.6.7 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
+  -ldflags "-X forge-api-client/version.Version=0.6.8 -X forge-api-client/version.Commit=$((git rev-parse --short HEAD)) -X forge-api-client/version.BuildDate=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ'))"
 ```
 
 Output: `build/bin/MetriyonAPI.exe`.
@@ -173,7 +174,7 @@ Build on a Linux host with the Wails WebKit dependencies installed:
 
 ```bash
 wails build -platform linux/amd64 -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.7 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.8 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 ### macOS
@@ -182,7 +183,7 @@ Build on macOS:
 
 ```bash
 wails build -platform darwin/universal -clean \
-  -ldflags "-X forge-api-client/version.Version=0.6.7 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  -ldflags "-X forge-api-client/version.Version=0.6.8 -X forge-api-client/version.Commit=$(git rev-parse --short HEAD) -X forge-api-client/version.BuildDate=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Wails platform builds should be performed on the target operating system for the most reliable native packaging.

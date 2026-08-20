@@ -225,3 +225,16 @@ button { user-select:none; }
 .about-box>div{min-width:0}.about-box strong{font-size:12px}.about-box .muted{font-size:10px;line-height:1.5}
 .update-card{display:grid;gap:14px}.update-versions{display:grid;grid-template-columns:1fr 32px 1fr;align-items:center;gap:10px}.update-versions>div{border:1px solid var(--line);background:var(--panel2);border-radius:9px;padding:13px}.update-versions>span{text-align:center;color:var(--accent);font-size:20px}.update-versions small{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.update-versions strong{font-size:18px}.update-notes{border:1px solid var(--line);border-radius:9px;background:var(--panel2);padding:12px;max-height:260px;overflow:auto}.update-notes>strong{display:block;margin-bottom:8px}.update-notes>div{color:var(--soft);font-size:11px;line-height:1.55;white-space:normal}.update-security{margin:0;font-size:10px}
 @media(max-width:700px){.about-box{align-items:flex-start;flex-direction:column}.update-versions{grid-template-columns:1fr}.update-versions>span{transform:rotate(90deg)}}
+
+.collection-search { display:flex;gap:6px;padding:2px 8px 8px;align-items:center; }
+.collection-search .input { height:32px;font-size:12px; }
+.collection-description { min-height:76px;height:76px;padding:9px 10px;resize:vertical; }
+.collection-properties-title { display:flex;align-items:flex-start;gap:12px;justify-content:space-between;margin-bottom:8px; }
+.collection-properties-title p { margin:4px 0 0;max-width:620px;font-size:11px;line-height:1.45; }
+.variable-suggestions { position:fixed;z-index:450;min-width:260px;max-width:380px;max-height:310px;overflow:auto;padding:5px;border:1px solid var(--line);border-radius:8px;background:var(--panel3);box-shadow:0 16px 44px #000a; }
+.variable-suggest-head { padding:6px 9px;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--line); }
+.variable-suggestions button { display:block;width:100%;border:0;border-radius:6px;background:transparent;color:var(--text);padding:7px 9px;text-align:left; }
+.variable-suggestions button:hover { background:var(--panel2); }
+.variable-suggestions button span { display:flex;flex-direction:column;gap:2px; }
+.variable-suggestions button strong { font-size:12px; }
+.variable-suggestions button small { color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:330px; }

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"runtime"
 	"sort"
@@ -214,6 +215,169 @@ func (a *App) DeleteEntity(kind, id string) error            { return a.store.De
 func (a *App) ClearHistory(workspaceID string) error         { return a.store.ClearHistory(workspaceID) }
 func (a *App) ClearLoadTests(requestID string) error         { return a.store.ClearLoadTests(requestID) }
 func (a *App) MoveFolder(input models.MoveFolderInput) error { return a.store.MoveFolder(input) }
+
+func (a *App) ExportCollection(collectionID string) (string, error) {
+	state, err := a.store.LoadState()
+	if err != nil {
+		return "", err
+	}
+	var collection *models.Collection
+	for i := range state.Collections {
+		if state.Collections[i].ID == collectionID {
+			collection = &state.Collections[i]
+			break
+		}
+	}
+	if collection == nil {
+		return "", fmt.Errorf("collection não encontrada")
+	}
+	pkg := models.CollectionPackage{
+		Format:     "metriyon.collection",
+		Version:    1,
+		ExportedAt: time.Now().UTC(),
+		Collection: *collection,
+		Folders:    []models.Folder{},
+		Requests:   []models.RequestDefinition{},
+	}
+	for _, folder := range state.Folders {
+		if folder.CollectionID == collectionID {
+			pkg.Folders = append(pkg.Folders, folder)
+		}
+	}
+	for _, request := range state.Requests {
+		if request.CollectionID == collectionID {
+			a.decryptRequest(&request)
+			pkg.Requests = append(pkg.Requests, request)
+		}
+	}
+	payload, err := json.MarshalIndent(pkg, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	filename := strings.TrimSpace(collection.Name)
+	filename = regexp.MustCompile(`[^A-Za-z0-9._-]+`).ReplaceAllString(filename, "-")
+	filename = strings.Trim(filename, "-._")
+	if filename == "" {
+		filename = "collection"
+	}
+	path, err := wruntime.SaveFileDialog(a.ctx, wruntime.SaveDialogOptions{
+		Title:           "Export collection",
+		DefaultFilename: filename + ".metriyon-collection.json",
+		Filters:         []wruntime.FileFilter{{DisplayName: "Metriyon Collection", Pattern: "*.metriyon-collection.json"}, {DisplayName: "JSON", Pattern: "*.json"}},
+	})
+	if err != nil || path == "" {
+		return path, err
+	}
+	if err := os.WriteFile(path, payload, 0o600); err != nil {
+		return "", fmt.Errorf("salvar collection: %w", err)
+	}
+	return path, nil
+}
+
+func (a *App) ImportCollection(workspaceID string) (models.CollectionImportResult, error) {
+	result := models.CollectionImportResult{Folders: []models.Folder{}, Requests: []models.RequestDefinition{}}
+	path, err := wruntime.OpenFileDialog(a.ctx, wruntime.OpenDialogOptions{
+		Title:   "Import collection",
+		Filters: []wruntime.FileFilter{{DisplayName: "Metriyon Collection", Pattern: "*.metriyon-collection.json;*.json"}},
+	})
+	if err != nil || path == "" {
+		return result, err
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return result, err
+	}
+	if info.Size() > 32*1024*1024 {
+		return result, fmt.Errorf("arquivo de collection excede o limite de 32 MB")
+	}
+	payload, err := os.ReadFile(filepath.Clean(path))
+	if err != nil {
+		return result, fmt.Errorf("ler collection: %w", err)
+	}
+	var pkg models.CollectionPackage
+	if err := json.Unmarshal(payload, &pkg); err != nil {
+		return result, fmt.Errorf("collection inválida: %w", err)
+	}
+	if pkg.Format != "metriyon.collection" || pkg.Version != 1 {
+		return result, fmt.Errorf("formato de collection não suportado")
+	}
+	if strings.TrimSpace(pkg.Collection.Name) == "" {
+		return result, fmt.Errorf("collection sem nome")
+	}
+	state, err := a.store.LoadState()
+	if err != nil {
+		return result, err
+	}
+	name := strings.TrimSpace(pkg.Collection.Name)
+	exists := func(candidate string) bool {
+		for _, c := range state.Collections {
+			if c.WorkspaceID == workspaceID && strings.EqualFold(strings.TrimSpace(c.Name), candidate) {
+				return true
+			}
+		}
+		return false
+	}
+	if exists(name) {
+		base := name + " (Imported)"
+		name = base
+		for i := 2; exists(name); i++ {
+			name = fmt.Sprintf("%s %d", base, i)
+		}
+	}
+	maxSort := -1
+	for _, c := range state.Collections {
+		if c.WorkspaceID == workspaceID && c.SortOrder > maxSort {
+			maxSort = c.SortOrder
+		}
+	}
+	collection := pkg.Collection
+	collection.ID = uuid.NewString()
+	collection.WorkspaceID = workspaceID
+	collection.Name = name
+	collection.SortOrder = maxSort + 1
+	if collection.Variables == nil {
+		collection.Variables = map[string]string{}
+	}
+	if err := a.store.SaveCollection(collection); err != nil {
+		return result, err
+	}
+	folderIDs := map[string]string{}
+	for _, folder := range pkg.Folders {
+		folderIDs[folder.ID] = uuid.NewString()
+	}
+	for _, source := range pkg.Folders {
+		folder := source
+		folder.ID = folderIDs[source.ID]
+		folder.CollectionID = collection.ID
+		if source.ParentID != "" {
+			folder.ParentID = folderIDs[source.ParentID]
+		}
+		if err := a.store.SaveFolder(folder); err != nil {
+			return result, err
+		}
+		result.Folders = append(result.Folders, folder)
+	}
+	now := time.Now().UTC()
+	for _, source := range pkg.Requests {
+		request := source
+		request.ID = uuid.NewString()
+		request.WorkspaceID = workspaceID
+		request.CollectionID = collection.ID
+		request.FolderID = folderIDs[source.FolderID]
+		request.CreatedAt = now
+		request.UpdatedAt = now
+		if request.Variables == nil {
+			request.Variables = map[string]string{}
+		}
+		saved, saveErr := a.SaveRequest(request)
+		if saveErr != nil {
+			return result, saveErr
+		}
+		result.Requests = append(result.Requests, saved)
+	}
+	result.Collection = collection
+	return result, nil
+}
 
 func (a *App) SaveFlow(v models.Flow) (models.Flow, error) {
 	if v.ID == "" {
